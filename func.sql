@@ -118,6 +118,21 @@ CREATE OR REPLACE FUNCTION search_anime_by_title(t TEXT)
 BEGIN
     RETURN QUERY
         select anime.id, anime.title, anime.description, anime.series_num from anime where anime.title like concat('%',lower(t),'%');
-END;
+END
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION search_anime_by_tag(t TEXT)
+    RETURNS  Table ( id INT ,
+                     title TEXT ,
+                     description TEXT ,
+                     series_num INT) AS $$
+
+BEGIN
+    RETURN QUERY
+        SELECT anime.id, anime.title, anime.description, anime.series_num from tags
+        join content_tags on tags.id = content_tags.tag_id
+        join content on content.id = content_tags.content_id
+        join anime on content.id = anime.id
+        where tags.name = lower(t) and content.type = 'anime';
+END;
+$$ LANGUAGE plpgsql;

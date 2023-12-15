@@ -104,6 +104,7 @@ VALUES
 INSERT INTO content_tags (content_id, tag_id)
 VALUES
     (1, 1),
+    (2, 1),
     (1, 2),
     (2, 3),
     (3, 4),
