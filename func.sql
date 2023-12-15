@@ -110,6 +110,15 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+
+
+--
+--
+--                         BY TITLE
+--
+--
+
+
 CREATE OR REPLACE FUNCTION search_anime_by_title(t TEXT)
     RETURNS  Table ( id INT ,
                      title TEXT ,
@@ -117,9 +126,62 @@ CREATE OR REPLACE FUNCTION search_anime_by_title(t TEXT)
                      series_num INT) AS $$
 BEGIN
     RETURN QUERY
-        select anime.id, anime.title, anime.description, anime.series_num from anime where anime.title like concat('%',lower(t),'%');
+        select * from anime where lower(anime.title) like concat('%',lower(t),'%');
 END
 $$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION search_comic_by_title(t TEXT)
+    RETURNS  Table ( id INT ,
+                     title TEXT ,
+                     description TEXT ,
+                     is_colored BOOL) AS $$
+BEGIN
+    RETURN QUERY
+        select * from comic where lower(comic.title) like concat('%',lower(t),'%');
+END
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION search_game_by_title(t TEXT)
+    RETURNS  Table ( id INT ,
+                     title TEXT ,
+                     description TEXT ,
+                     is_free BOOL) AS $$
+BEGIN
+    RETURN QUERY
+        select * from game where lower(game.title) like concat('%',lower(t),'%');
+END
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION search_movie_by_title(t TEXT)
+    RETURNS  Table ( id INT ,
+                     title TEXT ,
+                     description TEXT ,
+                     duration INT) AS $$
+BEGIN
+    RETURN QUERY
+        select * from movie where lower(movie.title) like concat('%',lower(t),'%');
+END
+$$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION search_tv_show_by_title(t TEXT)
+    RETURNS  Table ( id INT ,
+                     title TEXT ,
+                     description TEXT ,
+                     series_num INT) AS $$
+BEGIN
+    RETURN QUERY
+        select * from tv_show where lower(tv_show.title) like concat('%',lower(t),'%');
+END
+$$ LANGUAGE plpgsql;
+
+--
+--
+--                         BY TAG
+--
+--
+
 
 CREATE OR REPLACE FUNCTION search_anime_by_tag(t TEXT)
     RETURNS  Table ( id INT ,
@@ -134,5 +196,72 @@ BEGIN
         join content on content.id = content_tags.content_id
         join anime on content.id = anime.id
         where tags.name = lower(t) and content.type = 'anime';
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION search_comic_by_tag(t TEXT)
+    RETURNS  Table ( id INT ,
+                     title TEXT ,
+                     description TEXT ,
+                     is_colored BOOL) AS $$
+
+BEGIN
+    RETURN QUERY
+        SELECT comic.id, comic.title, comic.description, comic.is_colored from tags
+                                                                                   join content_tags on tags.id = content_tags.tag_id
+                                                                                   join content on content.id = content_tags.content_id
+                                                                                   join comic on content.id = comic.id
+        where tags.name = lower(t) and content.type = 'comic';
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION search_game_by_tag(t TEXT)
+    RETURNS  Table ( id INT ,
+                     title TEXT ,
+                     description TEXT ,
+                     is_free BOOL) AS $$
+
+BEGIN
+    RETURN QUERY
+        SELECT game.id, game.title, game.description, game.is_free from tags
+                                                                                   join content_tags on tags.id = content_tags.tag_id
+                                                                                   join content on content.id = content_tags.content_id
+                                                                                   join game on content.id = game.id
+        where tags.name = lower(t) and content.type = 'game';
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION search_movie_by_tag(t TEXT)
+    RETURNS  Table ( id INT ,
+                     title TEXT ,
+                     description TEXT ,
+                     duration INT) AS $$
+
+BEGIN
+    RETURN QUERY
+        SELECT movie.id, movie.title, movie.description, movie.duration from tags
+                                                                            join content_tags on tags.id = content_tags.tag_id
+                                                                            join content on content.id = content_tags.content_id
+                                                                            join movie on content.id = movie.id
+        where tags.name = lower(t) and content.type = 'movie';
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION search_tv_show_by_tag(t TEXT)
+    RETURNS  Table ( id INT ,
+                     title TEXT ,
+                     description TEXT ,
+                     series_num INT) AS $$
+
+BEGIN
+    RETURN QUERY
+        SELECT tv_show.id, tv_show.title, tv_show.description, tv_show.series_num from tags
+                                                                                 join content_tags on tags.id = content_tags.tag_id
+                                                                                 join content on content.id = content_tags.content_id
+                                                                                 join tv_show on content.id = tv_show.id
+        where tags.name = lower(t) and content.type = 'movie';
 END;
 $$ LANGUAGE plpgsql;
