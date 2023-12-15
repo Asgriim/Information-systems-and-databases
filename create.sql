@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS tv_show (
     id INT PRIMARY KEY,
     title TEXT,
     description TEXT,
-    series_num INT NOT NULL
+    series_num INT NOT NULL CHECK ( tv_show.series_num >0 )
 );
 
 CREATE TABLE IF NOT EXISTS comic (
@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS movie (
     id INT PRIMARY KEY,
     title TEXT,
     description TEXT,
-    duration INT NOT NULL
+    duration INT NOT NULL CHECK ( duration > 0 )
 );
 
 -- Таблица anime
@@ -34,8 +34,7 @@ CREATE TABLE IF NOT EXISTS anime (
     id INT PRIMARY KEY,
     title TEXT,
     description TEXT,
-    series_num INT NOT NULL
-
+    series_num INT NOT NULL CHECK ( series_num > 0 )
 );
 
 -- Таблица content
@@ -90,7 +89,7 @@ CREATE TABLE IF NOT EXISTS review (
 
 CREATE TABLE IF NOT EXISTS rating (
     id SERIAL PRIMARY KEY,
-    value INT,
+    value INT CHECK ( value > 0 ),
     user_id INT,
     content_id INT,
     FOREIGN KEY (user_id) REFERENCES user_ (id) ON DELETE CASCADE ,
@@ -129,7 +128,7 @@ CREATE TABLE IF NOT EXISTS  content_tags (
 );
 
 
-CREATE TABLE IF NOT EXISTS content_owner(
+CREATE TABLE IF NOT EXISTS owner_of_content(
     user_id INT,
     content_id INT,
     FOREIGN KEY (content_id) REFERENCES content (id) ON DELETE CASCADE ,
@@ -137,6 +136,14 @@ CREATE TABLE IF NOT EXISTS content_owner(
 );
 
 
+CREATE OR REPLACE FUNCTION add_to_content()
+    RETURNS TRIGGER AS $$
+BEGIN
+    INSERT INTO content
+    VALUES (NEW.id, TG_ARGV[0]);
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE  TRIGGER add_anime
     AFTER INSERT ON anime
@@ -159,15 +166,34 @@ CREATE OR REPLACE TRIGGER add_movies
     FOR EACH ROW EXECUTE PROCEDURE add_to_content('movie');
 
 
-
-CREATE OR REPLACE FUNCTION add_to_content()
+CREATE OR REPLACE FUNCTION remove_from_content()
     RETURNS TRIGGER AS $$
 BEGIN
-    INSERT INTO content
-    VALUES (NEW.id, TG_ARGV[0]);
-    RETURN NEW;
+    DELETE FROM content
+    WHERE (OLD.id = content.id);
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER remove_anime_trig
+    AFTER DELETE ON anime
+    FOR EACH ROW EXECUTE PROCEDURE remove_from_content();
+
+CREATE OR REPLACE TRIGGER remove_comic_trig
+    AFTER DELETE ON comic
+    FOR EACH ROW EXECUTE PROCEDURE remove_from_content();
+
+CREATE OR REPLACE TRIGGER remove_game_trig
+    AFTER DELETE ON game
+    FOR EACH ROW EXECUTE PROCEDURE remove_from_content();
+
+CREATE OR REPLACE TRIGGER remove_movie_trig
+    AFTER DELETE ON movie
+    FOR EACH ROW EXECUTE PROCEDURE remove_from_content();
+
+CREATE OR REPLACE TRIGGER remove_tb_show_trig
+    AFTER DELETE ON tv_show
+    FOR EACH ROW EXECUTE PROCEDURE remove_from_content();
+
 
 
 CREATE INDEX IF NOT EXISTS title_anime ON anime USING hash (title);
@@ -175,40 +201,3 @@ CREATE INDEX IF NOT EXISTS title_movie ON movie USING hash (title);
 CREATE INDEX IF NOT EXISTS title_tv_show ON tv_show USING hash (title);
 CREATE INDEX IF NOT EXISTS title_game ON game USING hash (title);
 CREATE INDEX IF NOT EXISTS title_comic ON comic USING hash (title);
-
-
-CREATE OR REPLACE FUNCTION add_anime_as_creator(_user_id INT, _content_id INT,_title TEXT, _description TEXT, _series_num INT)
-    RETURNS VOID AS $$
-BEGIN
-    insert into anime(id, title, description, series_num) VALUES (_content_id,_title,_description,_series_num);
-    insert into
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE OR REPLACE FUNCTION update_anime(user_id INT,anime_id INT, new_title TEXT, new_description TEXT, new_series_num INT)
-    RETURNS VOID AS $$
-BEGIN
-    UPDATE anime
-    SET title = new_title, description = new_description, series_num = new_series_num
-    WHERE id = anime_id;
-
-END;
-$$ LANGUAGE plpgsql;
-
-
-CREATE OR REPLACE FUNCTION add_to_history(user_id INT, content_id INT)
-    RETURNS VOID AS $$
-BEGIN
-    INSERT INTO history(user_id, content_id, date) values (user_id, content_id, current_timestamp);
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE OR REPLACE FUNCTION update_anime(user_id INT,anime_id INT, new_title TEXT, new_description TEXT, new_series_num INT)
-    RETURNS VOID AS $$
-BEGIN
-    UPDATE anime
-    SET title = new_title, description = new_description, series_num = new_series_num
-    WHERE id = anime_id;
-
-END;
-$$ LANGUAGE plpgsql;
