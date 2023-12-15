@@ -129,6 +129,13 @@ CREATE TABLE IF NOT EXISTS  content_tags (
 );
 
 
+CREATE TABLE IF NOT EXISTS content_owner(
+    user_id INT,
+    content_id INT,
+    FOREIGN KEY (content_id) REFERENCES content (id) ON DELETE CASCADE ,
+    FOREIGN KEY (user_id) REFERENCES user_ (id) ON DELETE CASCADE
+);
+
 
 
 CREATE OR REPLACE  TRIGGER add_anime
@@ -170,3 +177,38 @@ CREATE INDEX IF NOT EXISTS title_game ON game USING hash (title);
 CREATE INDEX IF NOT EXISTS title_comic ON comic USING hash (title);
 
 
+CREATE OR REPLACE FUNCTION add_anime_as_creator(_user_id INT, _content_id INT,_title TEXT, _description TEXT, _series_num INT)
+    RETURNS VOID AS $$
+BEGIN
+    insert into anime(id, title, description, series_num) VALUES (_content_id,_title,_description,_series_num);
+    insert into
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION update_anime(user_id INT,anime_id INT, new_title TEXT, new_description TEXT, new_series_num INT)
+    RETURNS VOID AS $$
+BEGIN
+    UPDATE anime
+    SET title = new_title, description = new_description, series_num = new_series_num
+    WHERE id = anime_id;
+
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION add_to_history(user_id INT, content_id INT)
+    RETURNS VOID AS $$
+BEGIN
+    INSERT INTO history(user_id, content_id, date) values (user_id, content_id, current_timestamp);
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION update_anime(user_id INT,anime_id INT, new_title TEXT, new_description TEXT, new_series_num INT)
+    RETURNS VOID AS $$
+BEGIN
+    UPDATE anime
+    SET title = new_title, description = new_description, series_num = new_series_num
+    WHERE id = anime_id;
+
+END;
+$$ LANGUAGE plpgsql;
