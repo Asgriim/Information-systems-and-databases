@@ -110,3 +110,14 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION search_anime_by_title(t TEXT)
+    RETURNS  Table ( id INT ,
+                     title TEXT ,
+                     description TEXT ,
+                     series_num INT) AS $$
+BEGIN
+    RETURN QUERY
+        select anime.id, anime.title, anime.description, anime.series_num from anime where anime.title like concat('%',lower(t),'%');
+END;
+$$ LANGUAGE plpgsql;
+

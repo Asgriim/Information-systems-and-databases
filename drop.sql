@@ -46,3 +46,11 @@ DROP TABLE IF EXISTS review CASCADE;
 DROP TABLE IF EXISTS history CASCADE;
 
 DROP TABLE IF EXISTS rating CASCADE;
+
+DROP TABLE IF EXISTS owner_of_content CASCADE;
+
+drop INDEX IF EXISTS title_anime;
+drop INDEX IF EXISTS title_movie;
+drop INDEX IF EXISTS title_tv_show;
+drop INDEX IF EXISTS title_game;
+drop INDEX IF EXISTS title_comic;
